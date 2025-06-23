@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dove Notion</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        /* Custom animations and styles */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .animate-slideIn {
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        /* Custom gradients */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .gradient-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .gradient-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 2px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Image rendering for crisp codes */
+        .code-image {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
+        
+        /* Hover effects */
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Mobile-specific hover effects */
+        @media (hover: none) {
+            .hover-lift:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+        
+        /* Glass morphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Tab styles */
+        .tab-active {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+        
+        .tab-inactive {
+            background: white;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .tab-inactive:hover {
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .mobile-padding {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .mobile-text-sm {
+                font-size: 0.875rem;
+            }
+            
+            .mobile-grid-1 {
+                grid-template-columns: 1fr;
+            }
+            
+            .mobile-space-y-2 > * + * {
+                margin-top: 0.5rem;
+            }
+            
+            .mobile-p-4 {
+                padding: 1rem;
+            }
+            
+            .mobile-text-base {
+                font-size: 1rem;
+            }
+            
+            .mobile-h-auto {
+                height: auto;
+            }
+        }
+        
+        /* Touch-friendly buttons */
+        .touch-button {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        /* Responsive font sizes */
+        .responsive-title {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+        }
+        
+        .responsive-subtitle {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+        }
+        
+        /* Mobile-first grid */
+        .responsive-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+        
+        @media (min-width: 768px) {
+            .responsive-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .responsive-grid {
+                gap: 2rem;
+            }
+        }
+        
+        /* Collapsible sections for mobile */
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-content.expanded {
+            max-height: 1000px;
+        }
+        
+        /* Mobile modal adjustments */
+        @media (max-width: 640px) {
+            .mobile-modal {
+                margin: 0.5rem;
+                max-height: calc(100vh - 1rem);
+                overflow-y: auto;
+            }
+        }
+        
+        /* Sticky elements for mobile */
+        .mobile-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        /* Better touch targets */
+        .touch-target {
+            padding: 0.75rem;
+            margin: 0.25rem;
+        }
+        
+        /* Responsive spacing */
+        .responsive-spacing {
+            padding: clamp(1rem, 4vw, 2rem);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div id="app">
+        <!-- Header -->
+        <header class="bg-white shadow-lg border-b-4 border-indigo-500 mobile-sticky">
+            <div class="max-w-7xl mx-auto mobile-padding px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+                    <div class="flex items-center space-x-3 sm:space-x-4">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 gradient-primary rounded-xl flex items-center justify-center">
+                            <i data-lucide="qr-code" class="h-5 w-5 sm:h-7 sm:w-7 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="responsive-title font-bold text-gray-900">Dove Notion</h1>
+                            <p class="text-gray-600 text-xs sm:text-sm">Professional code generation tool</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Navigation -->
+                    <div class="w-full sm:w-auto flex space-x-2">
+                        <button
+                            @click="activeTab = 'generator'"
+                            :class="[
+                                'flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 text-sm sm:text-base touch-button',
+                                activeTab === 'generator' ? 'tab-active' : 'tab-inactive'
+                            ]"
+                        >
+                            <i data-lucide="zap" class="h-4 w-4 inline mr-1 sm:mr-2"></i>
+                            Generator
+                        </button>
+                        <button
+                            @click="activeTab = 'history'"
+                            :class="[
+                                'flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 relative text-sm sm:text-base touch-button',
+                                activeTab === 'history' ? 'tab-active' : 'tab-inactive'
+                            ]"
+                        >
+                            <i data-lucide="history" class="h-4 w-4 inline mr-1 sm:mr-2"></i>
+                            History
+                            <span v-if="history.length > 0" class="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center">
+                                {{ history.length > 99 ? '99+' : history.length }}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto mobile-padding px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+            <!-- Generator Tab -->
+            <div v-if="activeTab === 'generator'" class="animate-fadeInUp">
+                <div class="responsive-grid">
+                    <!-- Input Section -->
+                    <div class="bg-white rounded-xl sm:rounded-2xl shadow-xl mobile-p-4 p-6 sm:p-8 hover-lift">
+                        <h2 class="responsive-subtitle font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
+                            <i data-lucide="settings" class="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 text-indigo-600"></i>
+                            Generator Settings
+                        </h2>
+
+                        <!-- Code Type Selection -->
+                        <div class="mb-4 sm:mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Code Type</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                                <button
+                                    v-for="type in codeTypes"
+                                    :key="type.value"
+                                    @click="selectedType = type.value"
+                                    :class="[
+                                        'p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left touch-button',
+                                        selectedType === type.value
+                                            ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                            : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                                    ]"
+                                >
+                                    <div class="font-semibold text-sm sm:text-base">{{ type.label }}</div>
+                                    <div class="text-xs sm:text-sm opacity-75">{{ type.description }}</div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Content Type Selection -->
+                        <div class="mb-4 sm:mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Content Type</label>
+                            <select 
+                                v-model="contentType" 
+                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base touch-button"
+                            >
+                                <option v-for="content in contentTypes" :key="content.value" :value="content.value">
+                                    {{ content.label }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Dynamic Input Fields -->
+                        <div class="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                            <!-- URL Input -->
+                            <div v-if="contentType === 'url'" class="animate-slideIn">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Website URL</label>
+                                <input
+                                    v-model="inputData.url"
+                                    type="url"
+                                    placeholder="https://example.com"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                />
+                            </div>
+
+                            <!-- Text Input -->
+                            <div v-if="contentType === 'text'" class="animate-slideIn">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Text Content</label>
+                                <textarea
+                                    v-model="inputData.text"
+                                    placeholder="Enter your text here..."
+                                    rows="3"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base resize-none"
+                                ></textarea>
+                            </div>
+
+                            <!-- Phone Input -->
+                            <div v-if="contentType === 'phone'" class="animate-slideIn">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                                <input
+                                    v-model="inputData.phone"
+                                    type="tel"
+                                    placeholder="+1234567890"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                />
+                            </div>
+
+                            <!-- Email Input -->
+                            <div v-if="contentType === 'email'" class="animate-slideIn">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                                <input
+                                    v-model="inputData.email"
+                                    type="email"
+                                    placeholder="example@email.com"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                />
+                            </div>
+
+                            <!-- WiFi Input -->
+                            <div v-if="contentType === 'wifi'" class="space-y-3 animate-slideIn">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Network Name (SSID)</label>
+                                    <input
+                                        v-model="inputData.wifi.ssid"
+                                        type="text"
+                                        placeholder="MyWiFiNetwork"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                                    <input
+                                        v-model="inputData.wifi.password"
+                                        type="password"
+                                        placeholder="WiFi Password"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Security Type</label>
+                                    <select 
+                                        v-model="inputData.wifi.security"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                    >
+                                        <option value="WPA">WPA/WPA2</option>
+                                        <option value="WEP">WEP</option>
+                                        <option value="nopass">No Password</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- SMS Input -->
+                            <div v-if="contentType === 'sms'" class="space-y-3 animate-slideIn">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                                    <input
+                                        v-model="inputData.sms.phone"
+                                        type="tel"
+                                        placeholder="+1234567890"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Message</label>
+                                    <textarea
+                                        v-model="inputData.sms.message"
+                                        placeholder="Your message here..."
+                                        rows="2"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base resize-none"
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Customization Section -->
+                        <div v-if="selectedType === 'qr'" class="mb-4 sm:mb-6">
+                            <button
+                                @click="showQROptions = !showQROptions"
+                                class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all touch-button"
+                            >
+                                <h3 class="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
+                                    <i data-lucide="palette" class="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-indigo-600"></i>
+                                    Customization
+                                </h3>
+                                <i :data-lucide="showQROptions ? 'chevron-up' : 'chevron-down'" class="h-5 w-5 text-gray-500"></i>
+                            </button>
+                            
+                            <div :class="['collapsible-content', showQROptions ? 'expanded' : '']">
+                                <div class="space-y-3 sm:space-y-4 pt-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Size</label>
+                                            <select 
+                                                v-model="qrOptions.size"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                            >
+                                                <option value="200">Small (200px)</option>
+                                                <option value="300">Medium (300px)</option>
+                                                <option value="400">Large (400px)</option>
+                                                <option value="500">Extra Large (500px)</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Error Correction</label>
+                                            <select 
+                                                v-model="qrOptions.errorCorrection"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                            >
+                                                <option value="L">Low (7%)</option>
+                                                <option value="M">Medium (15%)</option>
+                                                <option value="Q">Quartile (25%)</option>
+                                                <option value="H">High (30%)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Foreground Color</label>
+                                            <div class="flex items-center space-x-2">
+                                                <input
+                                                    v-model="qrOptions.foreground"
+                                                    type="color"
+                                                    class="w-12 h-10 border border-gray-300 rounded cursor-pointer touch-button"
+                                                />
+                                                <input
+                                                    v-model="qrOptions.foreground"
+                                                    type="text"
+                                                    class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
+                                            <div class="flex items-center space-x-2">
+                                                <input
+                                                    v-model="qrOptions.background"
+                                                    type="color"
+                                                    class="w-12 h-10 border border-gray-300 rounded cursor-pointer touch-button"
+                                                />
+                                                <input
+                                                    v-model="qrOptions.background"
+                                                    type="text"
+                                                    class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Barcode Options -->
+                        <div v-if="selectedType === 'barcode'" class="mb-4 sm:mb-6">
+                            <button
+                                @click="showBarcodeOptions = !showBarcodeOptions"
+                                class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all touch-button"
+                            >
+                                <h3 class="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
+                                    <i data-lucide="barcode" class="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-indigo-600"></i>
+                                    Barcode Settings
+                                </h3>
+                                <i :data-lucide="showBarcodeOptions ? 'chevron-up' : 'chevron-down'" class="h-5 w-5 text-gray-500"></i>
+                            </button>
+                            
+                            <div :class="['collapsible-content', showBarcodeOptions ? 'expanded' : '']">
+                                <div class="space-y-3 sm:space-y-4 pt-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Format</label>
+                                            <select 
+                                                v-model="barcodeOptions.format"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                            >
+                                                <option value="CODE128">CODE128</option>
+                                                <option value="CODE39">CODE39</option>
+                                                <option value="EAN13">EAN13</option>
+                                                <option value="EAN8">EAN8</option>
+                                                <option value="UPC">UPC</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Width</label>
+                                            <select 
+                                                v-model="barcodeOptions.width"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+                                            >
+                                                <option value="300">Small (300px)</option>
+                                                <option value="400">Medium (400px)</option>
+                                                <option value="500">Large (500px)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <button
+                            @click="generateCode"
+                            :disabled="!canGenerate"
+                            :class="[
+                                'w-full py-3 sm:py-4 px-6 rounded-lg font-semibold text-base sm:text-lg transition-all duration-200 flex items-center justify-center touch-button',
+                                canGenerate
+                                    ? 'gradient-primary text-white hover:shadow-lg transform hover:scale-105'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ]"
+                        >
+                            <i data-lucide="zap" class="h-4 w-4 sm:h-5 sm:w-5 mr-2"></i>
+                            Generate {{ selectedType === 'qr' ? 'QR Code' : 'Barcode' }}
+                        </button>
+                    </div>
+
+                    <!-- Output Section -->
+                    <div class="bg-white rounded-xl sm:rounded-2xl shadow-xl mobile-p-4 p-6 sm:p-8 hover-lift">
+                        <h2 class="responsive-subtitle font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
+                            <i data-lucide="image" class="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 text-purple-600"></i>
+                            Generated Code
+                        </h2>
+
+                        <div v-if="!generatedCode" class="text-center py-12 sm:py-16">
+                            <div class="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="qr-code" class="h-10 w-10 sm:h-12 sm:w-12 text-gray-400"></i>
+                            </div>
+                            <p class="text-gray-500 text-base sm:text-lg">Your generated code will appear here</p>
+                            <p class="text-gray-400 text-sm mt-2">Fill in the details and click generate</p>
+                        </div>
+
+                        <div v-else class="text-center">
+                            <!-- Generated Code Display -->
+                            <div class="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-8 mb-4 sm:mb-6">
+                                <img 
+                                    :src="generatedCode" 
+                                    :alt="selectedType === 'qr' ? 'Generated QR Code' : 'Generated Barcode'"
+                                    class="mx-auto max-w-full h-auto code-image"
+                                    style="max-height: 300px;"
+                                />
+                            </div>
+
+                            <!-- Code Info -->
+                            <div class="bg-indigo-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 text-left">
+                                <h3 class="font-semibold text-indigo-900 mb-2 flex items-center text-sm sm:text-base">
+                                    <i data-lucide="info" class="h-4 w-4 mr-2"></i>
+                                    Code Information
+                                </h3>
+                                <div class="space-y-1 text-xs sm:text-sm text-indigo-800">
+                                    <div><strong>Type:</strong> {{ selectedType === 'qr' ? 'QR Code' : 'Barcode' }}</div>
+                                    <div><strong>Content:</strong> {{ contentTypes.find(c => c.value === contentType)?.label }}</div>
+                                    <div><strong>Data:</strong> {{ truncateText(getCurrentData(), isMobile ? 30 : 50) }}</div>
+                                    <div v-if="selectedType === 'qr'"><strong>Size:</strong> {{ qrOptions.size }}px</div>
+                                    <div v-if="selectedType === 'barcode'"><strong>Format:</strong> {{ barcodeOptions.format }}</div>
+                                    <div><strong>Generated:</strong> {{ new Date().toLocaleString() }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                <button
+                                    @click="downloadCode"
+                                    class="flex items-center justify-center px-4 py-3 gradient-success text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm sm:text-base touch-button"
+                                >
+                                    <i data-lucide="download" class="h-4 w-4 sm:h-5 sm:w-5 mr-2"></i>
+                                    Download
+                                </button>
+                                
+                                <button
+                                    @click="copyToClipboard"
+                                    class="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm sm:text-base touch-button"
+                                >
+                                    <i data-lucide="copy" class="h-4 w-4 sm:h-5 sm:w-5 mr-2"></i>
+                                    Copy Link
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div v-if="activeTab === 'history'" class="animate-fadeInUp">
+                <div class="bg-white rounded-xl sm:rounded-2xl shadow-xl mobile-p-4 p-6 sm:p-8">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+                        <h2 class="responsive-subtitle font-bold text-gray-900 flex items-center">
+                            <i data-lucide="history" class="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 text-indigo-600"></i>
+                            Generation History
+                        </h2>
+                        <div class="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto">
+                            <span class="text-xs sm:text-sm text-gray-500">{{ history.length }} items</span>
+                            <button
+                                v-if="history.length > 0"
+                                @click="clearAllHistory"
+                                class="flex-1 sm:flex-none px-3 sm:px-4 py-2 gradient-danger text-white rounded-lg hover:shadow-lg transition-all font-semibold text-xs sm:text-sm touch-button"
+                            >
+                                <i data-lucide="trash-2" class="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2"></i>
+                                
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="history.length === 0" class="text-center py-12 sm:py-16">
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="clock" class="h-10 w-10 sm:h-12 sm:w-12 text-gray-400"></i>
+                        </div>
+                        <p class="text-gray-500 text-base sm:text-lg">No generation history yet</p>
+                        <p class="text-gray-400 text-sm mt-2">Generated codes will appear here</p>
+                    </div>
+
+                    <div v-else class="space-y-3 sm:space-y-4 custom-scrollbar max-h-96 overflow-y-auto">
+                        <div 
+                            v-for="(item, index) in history" 
+                            :key="item.id"
+                            class="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-all animate-slideIn"
+                            :style="{ animationDelay: index * 0.1 + 's' }"
+                        >
+                            <div class="flex items-start justify-between space-x-3">
+                                <div class="flex items-start space-x-3 flex-1 min-w-0">
+                                    <!-- Code Preview -->
+                                    <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <img 
+                                            :src="item.code" 
+                                            :alt="item.type + ' code'"
+                                            class="max-w-full max-h-full code-image"
+                                        />
+                                    </div>
+                                    
+                                    <!-- Code Details -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
+                                            <span :class="[
+                                                'px-2 py-1 rounded-full text-xs font-semibold',
+                                                item.type === 'qr' 
+                                                    ? 'bg-indigo-100 text-indigo-800' 
+                                                    : 'bg-purple-100 text-purple-800'
+                                            ]">
+                                                {{ item.type === 'qr' ? 'QR' : 'Barcode' }}
+                                            </span>
+                                            <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+                                                {{ item.contentType }}
+                                            </span>
+                                        </div>
+                                        <p class="text-gray-900 font-medium truncate text-sm sm:text-base">{{ truncateText(item.data, isMobile ? 25 : 60) }}</p>
+                                        <p class="text-gray-500 text-xs sm:text-sm mt-1">{{ formatDate(item.timestamp) }}</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                                    <button
+                                        @click="regenerateFromHistory(item)"
+                                        class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all touch-target"
+                                        title="Regenerate"
+                                    >
+                                        <i data-lucide="refresh-cw" class="h-3 w-3 sm:h-4 sm:w-4"></i>
+                                    </button>
+                                    <button
+                                        @click="downloadHistoryItem(item)"
+                                        class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all touch-target"
+                                        title="Download"
+                                    >
+                                        <i data-lucide="download" class="h-3 w-3 sm:h-4 sm:w-4"></i>
+                                    </button>
+                                    <button
+                                        @click="deleteHistoryItem(item.id)"
+                                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all touch-target"
+                                        title="Delete"
+                                    >
+                                        <i data-lucide="trash-2" class="h-3 w-3 sm:h-4 sm:w-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Success/Error Messages -->
+        <div v-if="showMessage" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto z-50 animate-fadeInUp">
+            <div :class="[
+                'px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-lg text-white font-semibold flex items-center space-x-2 text-sm sm:text-base',
+                messageType === 'success' ? 'gradient-success' : 'gradient-danger'
+            ]">
+                <i :data-lucide="messageType === 'success' ? 'check-circle' : 'alert-circle'" class="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"></i>
+                <span class="truncate">{{ message }}</span>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div v-if="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg p-6 sm:p-8 flex items-center space-x-4 max-w-sm w-full">
+                <div class="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-indigo-600"></div>
+                <span class="text-gray-700 font-semibold text-sm sm:text-base">Generating code...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+
+        createApp({
+            setup() {
+                // State management
+                const activeTab = ref('generator');
+                const selectedType = ref('qr');
+                const contentType = ref('url');
+                const generatedCode = ref(null);
+                const loading = ref(false);
+                const showMessage = ref(false);
+                const message = ref('');
+                const messageType = ref('success');
+                const history = ref([]);
+                const showQROptions = ref(false);
+                const showBarcodeOptions = ref(false);
+
+                // Mobile detection
+                const isMobile = ref(window.innerWidth < 640);
+
+                // Code types
+                const codeTypes = [
+                    {
+                        value: 'qr',
+                        label: 'QR Code',
+                        description: 'Square matrix barcode'
+                    },
+                    {
+                        value: 'barcode',
+                        label: 'Barcode',
+                        description: 'Linear barcode'
+                    }
+                ];
+
+                // Content types
+                const contentTypes = [
+                    { value: 'url', label: 'Website URL' },
+                    { value: 'text', label: 'Plain Text' },
+                    { value: 'phone', label: 'Phone Number' },
+                    { value: 'email', label: 'Email Address' },
+                    { value: 'wifi', label: 'WiFi Network' },
+                    { value: 'sms', label: 'SMS Message' }
+                ];
+
+                // Input data
+                const inputData = ref({
+                    url: '',
+                    text: '',
+                    phone: '',
+                    email: '',
+                    wifi: {
+                        ssid: '',
+                        password: '',
+                        security: 'WPA'
+                    },
+                    sms: {
+                        phone: '',
+                        message: ''
+                    }
+                });
+
+                // QR options
+                const qrOptions = ref({
+                    size: '300',
+                    errorCorrection: 'M',
+                    foreground: '#000000',
+                    background: '#ffffff'
+                });
+
+                // Barcode options
+                const barcodeOptions = ref({
+                    format: 'CODE128',
+                    width: '400'
+                });
+
+                // Computed properties
+                const canGenerate = computed(() => {
+                    const data = getCurrentData();
+                    return data && data.trim().length > 0;
+                });
+
+                // Methods
+                const getCurrentData = () => {
+                    switch (contentType.value) {
+                        case 'url':
+                            return inputData.value.url;
+                        case 'text':
+                            return inputData.value.text;
+                        case 'phone':
+                            return `tel:${inputData.value.phone}`;
+                        case 'email':
+                            return `mailto:${inputData.value.email}`;
+                        case 'wifi':
+                            return `WIFI:T:${inputData.value.wifi.security};S:${inputData.value.wifi.ssid};P:${inputData.value.wifi.password};;`;
+                        case 'sms':
+                            return `sms:${inputData.value.sms.phone}?body=${encodeURIComponent(inputData.value.sms.message)}`;
+                        default:
+                            return '';
+                    }
+                };
+
+                const generateCode = async () => {
+                    const data = getCurrentData();
+                    if (!data) return;
+
+                    loading.value = true;
+
+                    try {
+                        let codeUrl;
+                        if (selectedType.value === 'qr') {
+                            codeUrl = await generateQRCode(data);
+                        } else {
+                            codeUrl = await generateBarcode(data);
+                        }
+
+                        generatedCode.value = codeUrl;
+                        
+                        // Save to history
+                        saveToHistory({
+                            type: selectedType.value,
+                            contentType: contentType.value,
+                            data: data,
+                            code: codeUrl,
+                            options: selectedType.value === 'qr' ? { ...qrOptions.value } : { ...barcodeOptions.value }
+                        });
+
+                        showSuccessMessage('Code generated successfully!');
+                    } catch (error) {
+                        showErrorMessage('Failed to generate code. Please try again.');
+                        console.error('Generation error:', error);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const generateQRCode = async (data) => {
+                    const size = qrOptions.value.size;
+                    const errorCorrection = qrOptions.value.errorCorrection.toLowerCase();
+                    const foreground = qrOptions.value.foreground.replace('#', '');
+                    const background = qrOptions.value.background.replace('#', '');
+                    
+                    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&ecc=${errorCorrection}&color=${foreground}&bgcolor=${background}&data=${encodeURIComponent(data)}`;
+                };
+
+                const generateBarcode = async (data) => {
+                    return new Promise((resolve) => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        canvas.width = parseInt(barcodeOptions.value.width);
+                        canvas.height = 100;
+                        
+                        // Simple barcode simulation
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        ctx.fillStyle = '#000000';
+                        ctx.font = '12px monospace';
+                        ctx.textAlign = 'center';
+                        
+                        // Draw simple bars
+                        const barWidth = 3;
+                        const spacing = 2;
+                        let x = 20;
+                        
+                        for (let i = 0; i < data.length && x < canvas.width - 20; i++) {
+                            const charCode = data.charCodeAt(i);
+                            const bars = charCode % 8 + 1;
+                            
+                            for (let j = 0; j < bars; j++) {
+                                ctx.fillRect(x, 20, barWidth, 60);
+                                x += barWidth + spacing;
+                            }
+                            x += spacing * 2;
+                        }
+                        
+                        // Add text below
+                        ctx.fillText(data.substring(0, 20), canvas.width / 2, 95);
+                        
+                        resolve(canvas.toDataURL());
+                    });
+                };
+
+                const downloadCode = () => {
+                    if (!generatedCode.value) return;
+                    
+                    const link = document.createElement('a');
+                    link.download = `${selectedType.value}-${Date.now()}.png`;
+                    link.href = generatedCode.value;
+                    link.click();
+                    
+                    showSuccessMessage('Code downloaded successfully!');
+                };
+
+                const copyToClipboard = async () => {
+                    if (!generatedCode.value) return;
+                    
+                    try {
+                        await navigator.clipboard.writeText(generatedCode.value);
+                        showSuccessMessage('Code link copied to clipboard!');
+                    } catch (err) {
+                        showErrorMessage('Failed to copy to clipboard');
+                    }
+                };
+
+                // History management
+                const saveToHistory = (item) => {
+                    const historyItem = {
+                        id: Date.now(),
+                        timestamp: new Date().toISOString(),
+                        ...item
+                    };
+                    
+                    history.value.unshift(historyItem);
+                    
+                    // Keep only last 50 items
+                    if (history.value.length > 50) {
+                        history.value = history.value.slice(0, 50);
+                    }
+                    
+                    saveHistoryToStorage();
+                };
+
+                const deleteHistoryItem = (id) => {
+                    history.value = history.value.filter(item => item.id !== id);
+                    saveHistoryToStorage();
+                    showSuccessMessage('Item deleted from history');
+                };
+
+                const clearAllHistory = () => {
+                    if (confirm('Are you sure you want to clear all history?')) {
+                        history.value = [];
+                        saveHistoryToStorage();
+                        showSuccessMessage('History cleared successfully');
+                    }
+                };
+
+                const regenerateFromHistory = (item) => {
+                    // Set form data from history item
+                    selectedType.value = item.type;
+                    contentType.value = item.contentType;
+                    
+                    // Parse and set input data based on content type
+                    switch (item.contentType) {
+                        case 'url':
+                            inputData.value.url = item.data;
+                            break;
+                        case 'text':
+                            inputData.value.text = item.data;
+                            break;
+                        case 'phone':
+                            inputData.value.phone = item.data.replace('tel:', '');
+                            break;
+                        case 'email':
+                            inputData.value.email = item.data.replace('mailto:', '');
+                            break;
+                        // Add more cases as needed
+                    }
+                    
+                    // Set options
+                    if (item.type === 'qr' && item.options) {
+                        qrOptions.value = { ...item.options };
+                    } else if (item.type === 'barcode' && item.options) {
+                        barcodeOptions.value = { ...item.options };
+                    }
+                    
+                    // Switch to generator tab and regenerate
+                    activeTab.value = 'generator';
+                    setTimeout(() => {
+                        generateCode();
+                    }, 100);
+                };
+
+                const downloadHistoryItem = (item) => {
+                    const link = document.createElement('a');
+                    link.download = `${item.type}-${item.id}.png`;
+                    link.href = item.code;
+                    link.click();
+                    
+                    showSuccessMessage('Code downloaded successfully!');
+                };
+
+                // Local storage management
+                const saveHistoryToStorage = () => {
+                    try {
+                        localStorage.setItem('qr-generator-history', JSON.stringify(history.value));
+                    } catch (error) {
+                        console.error('Failed to save history to localStorage:', error);
+                    }
+                };
+
+                const loadHistoryFromStorage = () => {
+                    try {
+                        const stored = localStorage.getItem('qr-generator-history');
+                        if (stored) {
+                            history.value = JSON.parse(stored);
+                        }
+                    } catch (error) {
+                        console.error('Failed to load history from localStorage:', error);
+                        history.value = [];
+                    }
+                };
+
+                // Utility functions
+                const showSuccessMessage = (msg) => {
+                    message.value = msg;
+                    messageType.value = 'success';
+                    showMessage.value = true;
+                    setTimeout(() => {
+                        showMessage.value = false;
+                    }, 3000);
+                };
+
+                const showErrorMessage = (msg) => {
+                    message.value = msg;
+                    messageType.value = 'error';
+                    showMessage.value = true;
+                    setTimeout(() => {
+                        showMessage.value = false;
+                    }, 3000);
+                };
+
+                const truncateText = (text, maxLength) => {
+                    if (text.length <= maxLength) return text;
+                    return text.substring(0, maxLength) + '...';
+                };
+
+                const formatDate = (timestamp) => {
+                    return new Date(timestamp).toLocaleString();
+                };
+
+                // Responsive handling
+                const handleResize = () => {
+                    isMobile.value = window.innerWidth < 640;
+                };
+
+                // Watchers
+                watch([selectedType, contentType], () => {
+                    generatedCode.value = null;
+                });
+
+                // Initialize
+                onMounted(() => {
+                    lucide.createIcons();
+                    loadHistoryFromStorage();
+                    window.addEventListener('resize', handleResize);
+                });
+
+                return {
+                    activeTab,
+                    selectedType,
+                    contentType,
+                    generatedCode,
+                    loading,
+                    showMessage,
+                    message,
+                    messageType,
+                    history,
+                    showQROptions,
+                    showBarcodeOptions,
+                    isMobile,
+                    codeTypes,
+                    contentTypes,
+                    inputData,
+                    qrOptions,
+                    barcodeOptions,
+                    canGenerate,
+                    getCurrentData,
+                    generateCode,
+                    downloadCode,
+                    copyToClipboard,
+                    deleteHistoryItem,
+                    clearAllHistory,
+                    regenerateFromHistory,
+                    downloadHistoryItem,
+                    truncateText,
+                    formatDate
+                };
+            },
+            mounted() {
+                lucide.createIcons();
+            },
+            updated() {
+                lucide.createIcons();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
