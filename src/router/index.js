@@ -3,7 +3,7 @@ import store from "../stores"
 import Home from "../views/Home.vue"
 import About from "../views/About.vue"
 import Login from "../components/Login.vue"
-import Signup from "../components/Signup.vue"
+import Signup from "../components/signup.vue"
 import Dashboard from "../components/Dashboard.vue"
 import Subscription from "../components/Subscription.vue"
 
