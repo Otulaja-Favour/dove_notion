@@ -160,7 +160,9 @@ export default {
 .logo-icon {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  background: #ffd700;
+
   border-radius: 15px;
   display: flex;
   align-items: center;
