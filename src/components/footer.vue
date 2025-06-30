@@ -76,7 +76,7 @@
               <span class="contact-icon">🌍</span>
               <div class="contact-text">
                 <strong>Location:</strong>
-                <span>Lagos, Nigeria</span>
+                <span>Ogun, Nigeria</span>
               </div>
             </div>
           </div>
