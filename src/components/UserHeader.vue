@@ -6,12 +6,12 @@
           <div class="logo-icon"><img src="../assets/img/dove.png"  alt="" style="width: 150px;"</div>
           <div class="user-details">
             <h2 style="color: white;">Dove Notion</h2>
-            <p style="color: white;">Welcome, {{ user.fullName }}</p>
+            <p style="color: white;">Welcome, {{ user?.fullName || 'Guest' }}</p>
           </div>
         </div>
-        <div class="generations-info">
+        <div class="generations-info" v-if="user">
           <span class="generations-left" :class="{ warning: user.generationsLeft <= 1 }">
-            {{ user.generationsLeft }} generations left
+            {{ user.generationsLeft || 0 }} generations left
           </span>
           <button v-if="user.generationsLeft <= 1" @click="$router.push('/subscription')" class="upgrade-btn">
             Upgrade
@@ -29,12 +29,15 @@ export default {
   props: {
     user: {
       type: Object,
-      required: true
+      required: false,
+      default: null
     }
   },
   methods: {
     logout() {
-      this.$store.dispatch('logout')
+      if (this.user) {
+        this.$store.dispatch('logout')
+      }
       this.$router.push('/')
     }
   }

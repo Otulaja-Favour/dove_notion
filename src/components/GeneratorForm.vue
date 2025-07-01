@@ -52,9 +52,28 @@
     </div>
     
     <!-- Generate Button -->
-    <button @click="handleGenerate" :disabled="!canGenerate" class="generate-btn">
-      ⚡ Generate {{ selectedType === 'qr' ? 'QR Code' : 'Barcode' }}
+    <button 
+      @click="handleGenerate" 
+      :disabled="!canGenerate" 
+      :class="['generate-btn', { 'disabled': !canGenerate }]"
+    >
+      <span v-if="user?.generationsLeft <= 0">
+        🔒 No Generations Left - Upgrade Required
+      </span>
+      <span v-else>
+        ⚡ Generate {{ selectedType === 'qr' ? 'QR Code' : 'Barcode' }}
+        <small>({{ user?.generationsLeft || 0 }}/3 left)</small>
+      </span>
     </button>
+    
+    <!-- Upgrade Prompt for GeneratorForm -->
+    <div v-if="user?.generationsLeft <= 0" class="upgrade-prompt">
+      <p>You've used all 3 free generations. Upgrade to continue!</p>
+      <button @click="goToSubscription" class="upgrade-btn-small">
+        <i class="fas fa-crown me-1"></i>
+        Upgrade Now
+      </button>
+    </div>
   </div>
 </template>
 
@@ -233,12 +252,15 @@ export default {
         
         await this.$store.dispatch('createCode', codeData)
       } catch (error) {
-        console.error('Failed to save code:', error)
+        this.$store.commit('showToast', {
+          message: `❌ Failed to save code: ${error.message || 'Unknown error'}`,
+          type: 'error'
+        })
       }
     },
     async updateUserGenerations(count) {
       try {
-        const response = await fetch(`http://localhost:3001/users/${this.user.id}`, {
+        const response = await fetch(`https://doveapi-3.onrender.com/users/${this.user.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ generationsLeft: count })
@@ -248,8 +270,15 @@ export default {
           this.$store.commit('updateUserGenerations', count)
         }
       } catch (error) {
-        console.error('Failed to update user:', error)
+        this.$store.commit('showToast', {
+          message: `❌ Failed to update user generations: ${error.message || 'Unknown error'}`,
+          type: 'error'
+        })
       }
+    },
+    
+    goToSubscription() {
+      this.$router.push('/subscription')
     }
   }
 }
@@ -346,10 +375,46 @@ export default {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
+  position: relative;
 }
 
 .generate-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  background: #9ca3af;
+}
+
+.generate-btn small {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: normal;
+  opacity: 0.9;
+}
+
+.upgrade-prompt {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  text-align: center;
+  color: #92400e;
+}
+
+.upgrade-btn-small {
+  background: linear-gradient(135deg, #ffd700, #ffed4a);
+  color: #1a202c;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.upgrade-btn-small:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
 }
 </style>

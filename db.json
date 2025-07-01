@@ -5,7 +5,7 @@
       "fullName": "Test User",
       "email": "test@example.com",
       "password": "password123",
-      "generationsLeft": 1,
+      "generationsLeft": 0,
       "subscription": "basic",
       "createdAt": "2024-01-01T00:00:00.000Z",
       "lastLoginAt": "2025-06-30T14:35:09.527Z",
@@ -13,9 +13,7 @@
       "lastPlanUpgrade": "2025-06-30T09:43:10.697Z"
     }
   ],
-  "codes": [
-   
-  ],
+  "codes": [],
   "subscriptions": [],
   "sessions": [
     {

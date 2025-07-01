@@ -1,6 +1,6 @@
 import { createStore } from "vuex"
 
-const API_URL = "http://localhost:3001"
+const API_URL = "https://doveapi-3.onrender.com"
 
 // Helper function to check if server is running
 async function checkServerConnection() {
@@ -21,6 +21,7 @@ export default createStore({
       show: false,
       message: "",
       type: "success",
+      timeoutId: null,
     },
     sessions: [],
     codes: [],
@@ -37,26 +38,46 @@ export default createStore({
       state.user.generationsLeft = count
     }
   },
-  showToast(state, { message, type = 'success' }) {
+  showToast(state, { message, type = 'success', duration = null }) {
+    // Clear any existing toast
+    if (state.toast.timeoutId) {
+      clearTimeout(state.toast.timeoutId)
+    }
+
     state.toast = {
       show: true,
       message,
       type
     }
-    setTimeout(() => {
+
+    // Set different durations based on type (faster timers)
+    const defaultDurations = {
+      'success': 1500,  // 1.5 seconds (was 2)
+      'info': 1200,     // 1.2 seconds (was 1.5)
+      'warning': 2500,  // 2.5 seconds (was 3)
+      'error': 3000     // 3 seconds (was 4)
+    }
+
+    const timeoutDuration = duration || defaultDurations[type] || 2000
+
+    const timeoutId = setTimeout(() => {
       state.toast.show = false
-    }, 3000)
- 
-},
+      state.toast.timeoutId = null
+    }, timeoutDuration)
+
+    state.toast.timeoutId = timeoutId
+  },
+
+  hideToast(state) {
+    if (state.toast.timeoutId) {
+      clearTimeout(state.toast.timeoutId)
+    }
+    state.toast.show = false
+    state.toast.timeoutId = null
+  },
     setLoading(state, { loading, message = "" }) {
       state.loading = loading
       state.loadingMessage = message
-    },
-    showToast(state, { message, type = "success" }) {
-      state.toast = { show: true, message, type }
-      setTimeout(() => {
-        state.toast.show = false
-      }, 3000)
     },
     updateUser(state, userData) {
       state.user = { ...state.user, ...userData }

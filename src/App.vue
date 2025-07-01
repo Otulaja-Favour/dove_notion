@@ -1,23 +1,59 @@
 <template>
   <div id="app">
+    <!-- Toast Component -->
+    <div 
+      v-if="toast.show" 
+      :class="['toast-notification', toast.type]"
+      @click="hideToast"
+    >
+      <div class="toast-content">
+        <i :class="toastIcon"></i>
+        <span>{{ toast.message }}</span>
+        <button class="toast-close" @click.stop="hideToast">×</button>
+      </div>
+    </div>
+    
     <router-view></router-view>
   </div>
 </template>
 
 <script>
-import { useStore } from 'vuex'
-import { onMounted } from 'vue'
+import { mapState } from 'vuex'
 
 export default {
   name: 'App',
-  setup() {
-    const store = useStore()
-    
-    onMounted(() => {
-      store.dispatch('initAuth')
-    })
-
-    return {}
+  computed: {
+    ...mapState(['toast']),
+    toastIcon() {
+      switch (this.toast.type) {
+        case 'success': return 'fas fa-check-circle'
+        case 'error': return 'fas fa-exclamation-circle'
+        case 'warning': return 'fas fa-exclamation-triangle'
+        case 'info': return 'fas fa-info-circle'
+        default: return 'fas fa-info-circle'
+      }
+    }
+  },
+  methods: {
+    hideToast() {
+      this.$store.commit('hideToast')
+    }
+  },
+  async mounted() {
+    try {
+      await this.$store.dispatch('initAuth')
+      if (this.$store.state.user?.fullName) {
+        this.$store.commit('showToast', {
+          message: `👋 Welcome back, ${this.$store.state.user.fullName}!`,
+          type: 'success'
+        })
+      }
+    } catch (error) {
+      this.$store.commit('showToast', {
+        message: '❌ App initialization failed. Please refresh the page.',
+        type: 'error'
+      })
+    }
   }
 }
 </script>
@@ -82,19 +118,50 @@ body {
   100% { transform: rotate(360deg); }
 }
 
-.toast {
+/* Enhanced Toast Notifications */
+.toast-notification {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: var(--white);
+  top: 20px;
+  right: 20px;
   padding: 1rem 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  animation: slideIn 0.3s ease;
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+  z-index: 9999;
+  animation: slideInRight 0.4s ease-out;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  min-width: 280px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-@keyframes slideIn {
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideInRight {
   from {
     transform: translateX(100%);
     opacity: 0;
@@ -105,21 +172,33 @@ body {
   }
 }
 
-.toast.success {
-  border-left: 4px solid var(--success);
-  color: var(--success);
+.toast-notification.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-left: 4px solid #065f46;
 }
 
-.toast.error {
-  border-left: 4px solid var(--error);
-  color: var(--error);
+.toast-notification.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-left: 4px solid #991b1b;
+}
+
+.toast-notification.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-left: 4px solid #92400e;
+}
+
+.toast-notification.info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-left: 4px solid #1d4ed8;
 }
 
 @media (max-width: 768px) {
-  .toast {
+  .toast-notification {
+    top: auto;
     bottom: 1rem;
     right: 1rem;
     left: 1rem;
+    max-width: none;
   }
 }
 </style>

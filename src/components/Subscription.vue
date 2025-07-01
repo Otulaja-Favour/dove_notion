@@ -11,12 +11,11 @@
         <div class="header-section">
           <div class="header-icon">💎</div>
           <h1>Choose Your Plan</h1>
-          <p>Upgrade your account to generate more QR codes and barcodes</p>
-          <div class="current-status" v-if="user">
-            <span class="status-label">Current Plan:</span>
-            <span class="status-value">{{ user.subscription || 'Free' }}</span>
-            <span class="generations-left">{{ user.generationsLeft }} generations remaining</span>
-          </div>
+          <p>Upgrade your account to generate more QR codes and barcodes</p>        <div class="current-status" v-if="user">
+          <span class="status-label">Current Plan:</span>
+          <span class="status-value">{{ user.subscription || 'Free' }}</span>
+          <span class="generations-left">{{ user.generationsLeft || 0 }} generations remaining</span>
+        </div>
         </div>
 
 
@@ -69,18 +68,39 @@
                 @click="subscribeToPlan(plan)" 
                 :class="['subscribe-btn', { 
                   popular: plan.popular,
-                  current: isCurrentPlan(plan),
+                  current: isCurrentPlan(plan) && !canRenewPlan(plan),
+                  renewal: isCurrentPlan(plan) && canRenewPlan(plan),
                   free: plan.price === 0
                 }]"
-                :disabled="loading || !user || isCurrentPlan(plan)"
+                :disabled="loading || !user"
               >
                 <span v-if="!user">Please Login First</span>
-                <span v-else-if="isCurrentPlan(plan)">Current Plan</span>
+                <span v-else-if="isCurrentPlan(plan) && canRenewPlan(plan)">
+                  <i class="fas fa-sync-alt me-1"></i>
+                  {{ loading ? 'Processing...' : `Renew Plan for ₦${plan.price.toLocaleString()}` }}
+                </span>
+                <span v-else-if="isCurrentPlan(plan) && !canRenewPlan(plan)">
+                  <i class="fas fa-check me-1"></i>
+                  Current Plan - No Renewal Needed
+                </span>
                 <span v-else-if="plan.price === 0">Get Started Free</span>
                 <span v-else>
                   {{ loading ? 'Processing...' : `Upgrade for ₦${plan.price.toLocaleString()}` }}
                 </span>
               </button>
+              
+              <!-- Renewal Info for Current Plan -->
+              <div v-if="isCurrentPlan(plan)" class="renewal-info">
+                <div v-if="canRenewPlan(plan)" class="renewal-needed">
+                  <i class="fas fa-info-circle me-1"></i>
+                  You have {{ user.generationsLeft || 0 }} generations left. 
+                  Renew to add {{ plan.generations }} more!
+                </div>
+                <div v-else class="renewal-not-needed">
+                  <i class="fas fa-check-circle me-1"></i>
+                  You have plenty of generations remaining ({{ user.generationsLeft || 0 }})
+                </div>
+              </div>
               
               <div class="plan-note" v-if="plan.note">
                 {{ plan.note }}
@@ -181,7 +201,8 @@ import footer from './footer.vue'
 export default {
   name: 'Subscription',
   components: {
-    UserHeader, footer
+    UserHeader, 
+    footer
   },
   data() {
     return {
@@ -247,7 +268,7 @@ export default {
   },
   computed: {
     user() {
-      return this.$store.state.user
+      return this.$store.state.user || null
     }
   },
   methods: {
@@ -255,6 +276,16 @@ export default {
       if (!this.user) return false
       const userPlan = this.user.subscription || 'free'
       return userPlan.toLowerCase() === plan.id.toLowerCase()
+    },
+    
+    canRenewPlan(plan) {
+      if (!this.user || !this.isCurrentPlan(plan)) return false
+      
+      // Allow renewal if user has low generations (less than 25% of plan's generations)
+      const renewalThreshold = Math.floor(plan.generations * 0.25)
+      const currentGenerations = this.user.generationsLeft || 0
+      
+      return currentGenerations <= renewalThreshold
     },
     
     async subscribeToPlan(plan) {
@@ -267,6 +298,9 @@ export default {
         return
       }
 
+      // Check if this is a renewal of current plan
+      const isRenewal = this.isCurrentPlan(plan) && this.canRenewPlan(plan)
+      
       // Handle free plan
       if (plan.price === 0) {
         try {
@@ -285,7 +319,7 @@ export default {
         return
       }
 
-      // Handle paid plans
+      // Handle paid plans (both new subscriptions and renewals)
       this.loading = true
       
       try {
@@ -300,7 +334,7 @@ export default {
         const self = this
 
         const handler = window.PaystackPop.setup({
-          key: 'pk_live_f96aa56b0b5b7fb5ba3ee4dd322344e920cd3089',
+          key: 'pk_test_e8011d0aec4bd45296062e3d5675cb7fcb9be5cd',
           email: this.user.email,
           amount: plan.price * 100, // Convert to kobo
           currency: 'NGN',
@@ -311,10 +345,11 @@ export default {
             planName: plan.name,
             generations: plan.generations,
             userEmail: this.user.email,
-            userName: this.user.fullName
+            userName: this.user.fullName,
+            isRenewal: isRenewal
           },
           callback: function(response) {
-            self.handlePaymentSuccess(response, plan)
+            self.handlePaymentSuccess(response, plan, isRenewal)
           },
           onClose: function() {
             self.handlePaymentClose()
@@ -333,18 +368,22 @@ export default {
       }
     },
 
-    async handlePaymentSuccess(response, plan) {
+    async handlePaymentSuccess(response, plan, isRenewal = false) {
       try {
-        await this.updateUserPlan(plan, response.reference)
+        await this.updateUserPlan(plan, response.reference, isRenewal)
+        
+        const updatedGenerations = (this.user?.generationsLeft || 0) + plan.generations
+        
+        const messageType = isRenewal ? 'renewed' : 'upgraded'
+        const actionText = isRenewal ? 'Plan renewed' : 'Payment successful'
         
         this.$store.commit('showToast', { 
-          message: `Payment successful! You now have ${this.user.generationsLeft + plan.generations} generations.`, 
+          message: `${actionText}! You now have ${updatedGenerations} generations.`, 
           type: 'success' 
         })
         
         this.$router.push('/dashboard')
       } catch (error) {
-        console.error('Post-payment error:', error)
         this.$store.commit('showToast', {
           message: 'Payment successful but failed to update account. Please contact support.',
           type: 'error'
@@ -362,20 +401,32 @@ export default {
       })
     },
 
-    async updateUserPlan(plan, reference) {
+    async updateUserPlan(plan, reference, isRenewal = false) {
+      if (!this.user || !this.user.id) {
+        throw new Error('User data not available')
+      }
+      
       const currentGenerations = this.user.generationsLeft || 0
       const newGenerations = currentGenerations + plan.generations
       
       // Update user in database
-      const updateResponse = await fetch(`http://localhost:3001/users/${this.user.id}`, {
+      const updateData = {
+        generationsLeft: newGenerations,
+        lastPayment: new Date().toISOString()
+      }
+      
+      // Only update subscription if it's not a renewal or if upgrading from free
+      if (!isRenewal || this.user.subscription === 'free' || !this.user.subscription) {
+        updateData.subscription = plan.id
+        updateData.lastPlanUpgrade = new Date().toISOString()
+      } else {
+        updateData.lastRenewal = new Date().toISOString()
+      }
+      
+      const updateResponse = await fetch(`https://doveapi-3.onrender.com/users/${this.user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          generationsLeft: newGenerations,
-          subscription: plan.id,
-          lastPayment: new Date().toISOString(),
-          lastPlanUpgrade: new Date().toISOString()
-        })
+        body: JSON.stringify(updateData)
       })
 
       if (!updateResponse.ok) {
@@ -386,7 +437,7 @@ export default {
 
       // Save transaction record
       if (reference !== 'free_upgrade') {
-        await fetch('http://localhost:3001/transactions', {
+        await fetch('https://doveapi-3.onrender.com/transactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -398,6 +449,7 @@ export default {
             planName: plan.name,
             generations: plan.generations,
             status: 'success',
+            type: isRenewal ? 'renewal' : 'subscription',
             createdAt: new Date().toISOString()
           })
         })
@@ -405,22 +457,53 @@ export default {
 
       // Update store
       this.$store.commit('updateUser', updatedUser)
-      localStorage.setItem('dove_notion_user', JSON.stringify(updatedUser))
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('dove_notion_user', JSON.stringify(updatedUser))
+      }
     }
   },
   
   mounted() {
+    // Check user authentication
     if (!this.user) {
+      this.$store.commit('showToast', {
+        message: '🔐 Please log in to view subscription plans',
+        type: 'warning'
+      })
       this.$router.push('/login')
       return
     }
 
     // Load Paystack script if not already loaded
-    if (!document.querySelector('script[src*="paystack"]')) {
+    if (typeof window !== 'undefined' && !document.querySelector('script[src*="paystack"]')) {
       const script = document.createElement('script')
       script.src = 'https://js.paystack.co/v1/inline.js'
       script.async = true
+      script.onload = () => {
+        console.log('Paystack script loaded successfully')
+      }
+      script.onerror = () => {
+        this.$store.commit('showToast', {
+          message: 'Failed to load payment system. Please refresh the page.',
+          type: 'error'
+        })
+      }
       document.head.appendChild(script)
+    }
+  },
+
+  beforeUnmount() {
+    // Cancel any pending loading states
+    this.loading = false
+    
+    // Close any open Paystack modals
+    if (typeof window !== 'undefined' && typeof window.PaystackPop !== 'undefined') {
+      try {
+        // This will close any open Paystack modals
+        window.PaystackPop.closeIframe && window.PaystackPop.closeIframe()
+      } catch (error) {
+        // Silently handle any errors
+      }
     }
   }
 }
@@ -689,6 +772,51 @@ export default {
   background: #e2e8f0;
   color: #666;
   cursor: not-allowed;
+}
+
+.subscribe-btn.renewal {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  border: 2px solid #10b981;
+  animation: pulse 2s infinite;
+}
+
+.subscribe-btn.renewal:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.renewal-info {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.renewal-needed {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.renewal-not-needed {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+  border: 1px solid #10b981;
 }
 
 .subscribe-btn.free {
