@@ -8,9 +8,19 @@
       "generationsLeft": 0,
       "subscription": "basic",
       "createdAt": "2024-01-01T00:00:00.000Z",
-      "lastLoginAt": "2025-06-30T14:35:09.527Z",
+      "lastLoginAt": "2025-06-30T14:55:26.188Z",
       "lastPayment": "2025-06-30T09:43:10.697Z",
       "lastPlanUpgrade": "2025-06-30T09:43:10.697Z"
+    },
+    {
+      "id": "1751295389159",
+      "fullName": "kidda",
+      "email": "fotulaja@gmail.com",
+      "password": "Qwerty12345we!",
+      "generationsLeft": 3,
+      "subscription": "free",
+      "createdAt": "2025-06-30T14:56:29.159Z",
+      "lastLoginAt": "2025-06-30T14:56:38.046Z"
     }
   ],
   "codes": [],
@@ -20,6 +30,11 @@
       "id": "1751276798587",
       "userId": "1751276798547",
       "createdAt": "2025-06-30T09:46:38.587Z"
+    },
+    {
+      "id": "1751295389180",
+      "userId": "1751295389159",
+      "createdAt": "2025-06-30T14:56:29.180Z"
     }
   ]
 }
