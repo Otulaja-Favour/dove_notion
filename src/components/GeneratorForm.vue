@@ -260,10 +260,10 @@ export default {
     },
     async updateUserGenerations(count) {
       try {
-        const response = await fetch(`${this.$store.getters.apiUrl}/users/${this.user.id}`, {
-          method: 'PATCH',
+        const response = await fetch(`${this.$store.getters.apiUrl}/books/${this.user.id}`, {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ generationsLeft: count })
+          body: JSON.stringify({ ...this.user, generationsLeft: count })
         })
         
         if (response.ok) {

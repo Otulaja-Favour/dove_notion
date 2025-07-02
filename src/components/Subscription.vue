@@ -423,10 +423,10 @@ export default {
         updateData.lastRenewal = new Date().toISOString()
       }
       
-      const updateResponse = await fetch(`https://doveapi-3.onrender.com/users/${this.user.id}`, {
-        method: 'PATCH',
+      const updateResponse = await fetch(`${this.$store.getters.apiUrl}/books/${this.user.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify({ ...this.user, ...updateData })
       })
 
       if (!updateResponse.ok) {
@@ -435,25 +435,8 @@ export default {
 
       const updatedUser = await updateResponse.json()
 
-      // Save transaction record
-      if (reference !== 'free_upgrade') {
-        await fetch('https://doveapi-3.onrender.com/transactions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: Date.now().toString(),
-            userId: this.user.id,
-            reference: reference,
-            amount: plan.price,
-            planId: plan.id,
-            planName: plan.name,
-            generations: plan.generations,
-            status: 'success',
-            type: isRenewal ? 'renewal' : 'subscription',
-            createdAt: new Date().toISOString()
-          })
-        })
-      }
+      // Transaction recording is disabled since no transactions endpoint is available
+      // TODO: Add transaction recording when transactions endpoint is set up
 
       // Update store
       this.$store.commit('updateUser', updatedUser)

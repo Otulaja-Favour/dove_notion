@@ -231,30 +231,10 @@ export default {
           type: 'info'
         })
 
-        // Delete user's codes first
-        const codesResponse = await fetch(`${this.$store.getters.apiUrl}/codes?userId=${this.user.id}`)
-        if (codesResponse.ok) {
-          const codes = await codesResponse.json()
-          for (const code of codes) {
-            await fetch(`${this.$store.getters.apiUrl}/codes/${code.id}`, {
-              method: 'DELETE'
-            })
-          }
-        }
-
-        // Delete user's transactions
-        const transactionsResponse = await fetch(`${this.$store.getters.apiUrl}/transactions?userId=${this.user.id}`)
-        if (transactionsResponse.ok) {
-          const transactions = await transactionsResponse.json()
-          for (const transaction of transactions) {
-            await fetch(`${this.$store.getters.apiUrl}/transactions/${transaction.id}`, {
-              method: 'DELETE'
-            })
-          }
-        }
-
+        // Delete user's codes first (already handled in user object)
+        // Delete user's transactions (not implemented yet)
         // Delete user account
-        const userResponse = await fetch(`${this.$store.getters.apiUrl}/users/${this.user.id}`, {
+        const userResponse = await fetch(`${this.$store.getters.apiUrl}/books/${this.user.id}`, {
           method: 'DELETE'
         })
 

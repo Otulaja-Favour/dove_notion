@@ -1,11 +1,11 @@
 import { createStore } from "vuex"
 
-const API_URL = "https://683efaf01cd60dca33ddd10d.mockapi.io/books"
+const API_URL = "https://683efaf01cd60dca33ddd10d.mockapi.io"
 
 // Helper function to check if server is running
 async function checkServerConnection() {
   try {
-    const response = await fetch(`${API_URL}?_limit=1`)
+    const response = await fetch(`${API_URL}/books`)
     return response.ok
   } catch (error) {
     return false
@@ -118,7 +118,7 @@ export default createStore({
       commit("setServerConnection", connected)
       if (!connected) {
         commit("showToast", {
-          message: "Cannot connect to server. Please make sure JSON server is running on port 3001.",
+          message: "Cannot connect to MockAPI server. Please check your internet connection.",
           type: "error",
         })
       }
@@ -139,7 +139,7 @@ export default createStore({
         if (savedUser) {
           const user = JSON.parse(savedUser)
           // Verify user still exists on server
-          const response = await fetch(`${API_URL}/users/${user.id}`)
+          const response = await fetch(`${API_URL}/books/${user.id}`)
           if (response.ok) {
             const currentUser = await response.json()
             commit("setUser", currentUser)
@@ -169,7 +169,7 @@ export default createStore({
           throw new Error("Cannot connect to server. Please make sure the server is running.")
         }
 
-        const response = await fetch(`${API_URL}/users?email=${email}`)
+        const response = await fetch(`${API_URL}/books`)
 
         if (!response.ok) {
           throw new Error(`Server error: ${response.status}`)
@@ -184,10 +184,13 @@ export default createStore({
             lastLoginAt: new Date().toISOString(),
           }
 
-          await fetch(`${API_URL}/users/${user.id}`, {
-            method: "PATCH",
+          await fetch(`${API_URL}/books/${user.id}`, {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lastLoginAt: updatedUser.lastLoginAt }),
+            body: JSON.stringify({ 
+              ...user,
+              lastLoginAt: updatedUser.lastLoginAt 
+            }),
           })
 
           commit("setUser", updatedUser)
@@ -202,9 +205,9 @@ export default createStore({
         let errorMessage = error.message
 
         if (error.message.includes("ERR_CONNECTION_REFUSED")) {
-          errorMessage = "Cannot connect to server. Please make sure JSON server is running on port 3001."
+          errorMessage = "Cannot connect to MockAPI server. Please check your internet connection."
         } else if (error.message.includes("Failed to fetch")) {
-          errorMessage = "Network error. Please check your connection and server status."
+          errorMessage = "Network error. Please check your connection and MockAPI server status."
         }
 
         commit("showToast", {
@@ -228,12 +231,13 @@ export default createStore({
         }
 
         // Check for existing email
-        const emailCheck = await fetch(`${API_URL}/users?email=${userData.email}`)
+        const emailCheck = await fetch(`${API_URL}/books`)
         if (!emailCheck.ok) {
           throw new Error(`Server error: ${emailCheck.status}`)
         }
 
-        const existingUsers = await emailCheck.json()
+        const allUsers = await emailCheck.json()
+        const existingUsers = allUsers.filter(user => user.email === userData.email)
 
         if (existingUsers.length > 0) {
           throw new Error("Email already registered")
@@ -241,32 +245,29 @@ export default createStore({
 
         const newUser = {
           ...userData,
-          id: Date.now().toString(),
           generationsLeft: 3,
-          subscription: "free",
+          subscription: "free", 
           createdAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString(),
+          lastPayment: Date.now(),
+          lastPlanUpgrade: Date.now(),
+          codes: [],
+          subscriptions: [],
+          sessions: []
         }
 
-        const createResponse = await fetch(`${API_URL}/users`, {
+        const createResponse = await fetch(`${API_URL}/books`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newUser),
         })
 
-        if (!createResponse.ok) throw new Error("Failed to create account")
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text()
+          console.error("Signup failed:", createResponse.status, errorText)
+          throw new Error(`Failed to create account: ${createResponse.status} - ${errorText}`)
+        }
         const user = await createResponse.json()
-
-        // Create session
-        await fetch(`${API_URL}/sessions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: Date.now().toString(),
-            userId: user.id,
-            createdAt: new Date().toISOString(),
-          }),
-        })
 
         commit("showToast", { message: "Account created successfully!", type: "success" })
         return { success: true, user }
@@ -275,9 +276,9 @@ export default createStore({
         let errorMessage = error.message
 
         if (error.message.includes("ERR_CONNECTION_REFUSED")) {
-          errorMessage = "Cannot connect to server. Please make sure JSON server is running on port 3001."
+          errorMessage = "Cannot connect to MockAPI server. Please check your internet connection."
         } else if (error.message.includes("Failed to fetch")) {
-          errorMessage = "Network error. Please check your connection and server status."
+          errorMessage = "Network error. Please check your connection and MockAPI server status."
         }
 
         commit("showToast", { message: errorMessage, type: "error" })
@@ -292,10 +293,10 @@ export default createStore({
       if (!state.user) throw new Error("No user logged in")
 
       try {
-        const response = await fetch(`${API_URL}/users/${state.user.id}`, {
-          method: "PATCH",
+        const response = await fetch(`${API_URL}/books/${state.user.id}`, {
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedData),
+          body: JSON.stringify({ ...state.user, ...updatedData }),
         })
         if (!response.ok) throw new Error("Failed to update profile")
         const updatedUser = await response.json()
@@ -320,16 +321,21 @@ export default createStore({
           userId: state.user.id,
           createdAt: new Date().toISOString(),
         }
-        const response = await fetch(`${API_URL}/codes`, {
-          method: "POST",
+        
+        // Add code to user's codes array
+        const updatedCodes = [...(state.user.codes || []), newCode]
+        
+        const response = await fetch(`${API_URL}/books/${state.user.id}`, {
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newCode),
+          body: JSON.stringify({ ...state.user, codes: updatedCodes }),
         })
         if (!response.ok) throw new Error("Failed to create code")
-        const code = await response.json()
-        commit("addCode", code)
+        
+        commit("addCode", newCode)
+        commit("updateUser", { codes: updatedCodes })
         commit("showToast", { message: "Code created successfully", type: "success" })
-        return { success: true, code }
+        return { success: true, code: newCode }
       } catch (error) {
         commit("showToast", { message: error.message, type: "error" })
         return { success: false, error: error.message }
@@ -340,9 +346,8 @@ export default createStore({
       if (!state.user) throw new Error("No user logged in")
 
       try {
-        const response = await fetch(`${API_URL}/codes?userId=${state.user.id}`)
-        if (!response.ok) throw new Error("Failed to fetch codes")
-        const codes = await response.json()
+        // Get codes from user's codes array
+        const codes = state.user.codes || []
         commit("setCodes", codes)
         return { success: true, codes }
       } catch (error) {
@@ -351,16 +356,25 @@ export default createStore({
       }
     },
 
-    async updateCode({ commit }, { id, updates }) {
+    async updateCode({ commit, state }, { id, updates }) {
+      if (!state.user) throw new Error("No user logged in")
+
       try {
-        const response = await fetch(`${API_URL}/codes/${id}`, {
-          method: "PATCH",
+        // Update code in user's codes array
+        const updatedCodes = state.user.codes.map(code => 
+          code.id === id ? { ...code, ...updates } : code
+        )
+        
+        const response = await fetch(`${API_URL}/books/${state.user.id}`, {
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updates),
+          body: JSON.stringify({ ...state.user, codes: updatedCodes }),
         })
         if (!response.ok) throw new Error("Failed to update code")
-        const updatedCode = await response.json()
+        
+        const updatedCode = updatedCodes.find(code => code.id === id)
         commit("updateCode", updatedCode)
+        commit("updateUser", { codes: updatedCodes })
         commit("showToast", { message: "Code updated successfully", type: "success" })
         return { success: true, code: updatedCode }
       } catch (error) {
@@ -369,13 +383,22 @@ export default createStore({
       }
     },
 
-    async deleteCode({ commit }, id) {
+    async deleteCode({ commit, state }, id) {
+      if (!state.user) throw new Error("No user logged in")
+
       try {
-        const response = await fetch(`${API_URL}/codes/${id}`, {
-          method: "DELETE",
+        // Remove code from user's codes array
+        const updatedCodes = state.user.codes.filter(code => code.id !== id)
+        
+        const response = await fetch(`${API_URL}/books/${state.user.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...state.user, codes: updatedCodes }),
         })
         if (!response.ok) throw new Error("Failed to delete code")
+        
         commit("removeCode", id)
+        commit("updateUser", { codes: updatedCodes })
         commit("showToast", { message: "Code deleted successfully", type: "success" })
         return { success: true }
       } catch (error) {
@@ -388,14 +411,15 @@ export default createStore({
     async logout({ commit, state }) {
       if (state.user) {
         try {
-          const sessions = await fetch(`${API_URL}/sessions?userId=${state.user.id}`)
-          if (sessions.ok) {
-            const userSessions = await sessions.json()
-            // Delete all user sessions
-            await Promise.all(
-              userSessions.map((session) => fetch(`${API_URL}/sessions/${session.id}`, { method: "DELETE" })),
-            )
-          }
+          // Update user's last logout time
+          await fetch(`${API_URL}/books/${state.user.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              ...state.user,
+              lastLogoutAt: new Date().toISOString() 
+            }),
+          })
 
           commit("setUser", null)
           commit("setCodes", [])
