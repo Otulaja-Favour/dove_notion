@@ -232,29 +232,29 @@ export default {
         })
 
         // Delete user's codes first
-        const codesResponse = await fetch(`https://doveapi-3.onrender.com/codes?userId=${this.user.id}`)
+        const codesResponse = await fetch(`${this.$store.getters.apiUrl}/codes?userId=${this.user.id}`)
         if (codesResponse.ok) {
           const codes = await codesResponse.json()
           for (const code of codes) {
-            await fetch(`https://doveapi-3.onrender.com/codes/${code.id}`, {
+            await fetch(`${this.$store.getters.apiUrl}/codes/${code.id}`, {
               method: 'DELETE'
             })
           }
         }
 
         // Delete user's transactions
-        const transactionsResponse = await fetch(`https://doveapi-3.onrender.com/transactions?userId=${this.user.id}`)
+        const transactionsResponse = await fetch(`${this.$store.getters.apiUrl}/transactions?userId=${this.user.id}`)
         if (transactionsResponse.ok) {
           const transactions = await transactionsResponse.json()
           for (const transaction of transactions) {
-            await fetch(`https://doveapi-3.onrender.com/transactions/${transaction.id}`, {
+            await fetch(`${this.$store.getters.apiUrl}/transactions/${transaction.id}`, {
               method: 'DELETE'
             })
           }
         }
 
         // Delete user account
-        const userResponse = await fetch(`https://doveapi-3.onrender.com/users/${this.user.id}`, {
+        const userResponse = await fetch(`${this.$store.getters.apiUrl}/users/${this.user.id}`, {
           method: 'DELETE'
         })
 

@@ -260,7 +260,7 @@ export default {
     },
     async updateUserGenerations(count) {
       try {
-        const response = await fetch(`https://doveapi-3.onrender.com/users/${this.user.id}`, {
+        const response = await fetch(`${this.$store.getters.apiUrl}/users/${this.user.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ generationsLeft: count })

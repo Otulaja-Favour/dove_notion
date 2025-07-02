@@ -334,7 +334,7 @@ export default {
         const self = this
 
         const handler = window.PaystackPop.setup({
-          key: 'pk_live_f96aa56b0b5b7fb5ba3ee4dd322344e920cd3089',
+          key: 'pk_test_e8011d0aec4bd45296062e3d5675cb7fcb9be5cd',
           email: this.user.email,
           amount: plan.price * 100, // Convert to kobo
           currency: 'NGN',

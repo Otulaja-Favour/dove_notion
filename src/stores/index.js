@@ -1,11 +1,11 @@
 import { createStore } from "vuex"
 
-const API_URL = "https://doveapi-3.onrender.com"
+const API_URL = "https://683efaf01cd60dca33ddd10d.mockapi.io/books"
 
 // Helper function to check if server is running
 async function checkServerConnection() {
   try {
-    const response = await fetch(`${API_URL}/users?_limit=1`)
+    const response = await fetch(`${API_URL}?_limit=1`)
     return response.ok
   } catch (error) {
     return false
@@ -26,6 +26,10 @@ export default createStore({
     sessions: [],
     codes: [],
     serverConnected: true,
+  },
+
+  getters: {
+    apiUrl: () => API_URL,
   },
 
   mutations: {
